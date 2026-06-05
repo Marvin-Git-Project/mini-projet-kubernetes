@@ -1,0 +1,57 @@
+# Deployment PayMyBuddy
+# Application SpringBoot qui se connecte à la base MySQL via le service "mysql-service"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymybuddy
+spec:
+
+  replicas: 1
+
+  # Le selector cible les pods ayant le label "app: paymybuddy"
+  selector:
+    matchLabels:
+      app: paymybuddy
+
+  # Template = le moule utilisé pour créer chaque pod
+  # Tout ce qui est en dessous décrit à quoi ressemble un pod
+  template:
+    metadata:
+      labels: # Label collé sur chaque pod créé — DOIT être identique au "selector:" ci-dessus
+        app: paymybuddy
+    spec: # Liste des conteneurs qui tournent dans chaque pod (on en a qu'un : paymybuddy)
+      containers:
+      - name: paymybuddy
+        # Image construite localement depuis le code source du repo GitHub
+        image: paymybuddy:latest
+
+        # Never -->  Kubernetes utilise l'image locale, ne cherche pas sur Docker Hub
+        imagePullPolicy: Never
+
+        # Variables d'environnement récupérées depuis le Dockerfile du projet
+        env:
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "password"
+
+        # On remplace l'IP du Dockerfile par le nom du service MySQL
+        # Kubernetes résout automatiquement "mysql-service" vers le bon pod
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/db_paymybuddy"
+
+        # Port sur lequel l'application SpringBoot écoute
+        ports:
+        - containerPort: 8080
+
+        # Volume monté dans /data du conteneur pour persister les données
+        volumeMounts:
+        - name: paymybuddy-data
+          mountPath: /data
+
+      # Stockage des données sur le nœud dans /data comme demandé dans le sujet du projet
+      volumes:
+      - name: paymybuddy-data
+        hostPath:
+          path: /data

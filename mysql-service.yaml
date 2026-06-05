@@ -1,0 +1,20 @@
+# Service MySQL de type ClusterIP -> ( accessible uniquement à l'intérieur du cluster)
+# Les pods PayMyBuddy pourront joindre MySQL via le nom "mysql-service"*
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service  # NOM utilisé dans l'URL de PayMyBuddy
+spec:
+
+  # Type ClusterIP : adresse interne uniquement, pas accessible depuis l'extérieur
+  # Top pour une base de données qu'on ne veut pas exposer au monde
+  type: ClusterIP
+
+  # Le selector fait le lien entre ce service et les pods MySQL
+  # Il cible tous les pods qui ont le label "app: mysql"
+  selector:
+    app: mysql
+
+  ports:
+  - port: 3306        # Port exposé par le service à l'intérieur du cluster
+    targetPort: 3306  # Port sur lequel MySQL écoute dans le conteneur

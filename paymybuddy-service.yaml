@@ -1,0 +1,22 @@
+# Service PayMyBuddy de type NodePort
+# NodePort = rend l'application accessible depuis l'extérieur du cluster
+# via l'IP de la VM et un port entre 30000 et 32767
+apiVersion: v1
+kind: Service
+metadata:
+  name: paymybuddy-service
+spec:
+
+  # Type NodePort : ouvre un port sur le nœud (ma VM ubuntu)
+  # pour rediriger le trafic extérieur vers les pods PayMyBuddy
+  type: NodePort
+
+  # Le selector fait le lien entre ce service et les pods PayMyBuddy
+  # Il cible tous les pods qui ont le label "app: paymybuddy"
+  selector:
+    app: paymybuddy
+
+  ports:
+  - port: 8080        # Port interne du service dans le cluster
+    targetPort: 8080  # Port sur lequel PayMyBuddy écoute dans le conteneur
+    nodePort: 30080   # Port ouvert sur ta VM — accessible depuis ton navigateur

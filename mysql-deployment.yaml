@@ -1,0 +1,44 @@
+# Deployment MySQL
+# Gère le cycle de vie des pods (création, mise à jour, redémarrage)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql  # Nom du deployment
+spec:
+
+  # On veut un seul pod MySQL (comme demandé dans le sujet)
+  replicas: 1
+
+  # Le selector permet au Deployment de trouver ses pods via le label "app: mysql"
+  selector:
+    matchLabels:
+      app: mysql
+
+  # Template = le modèle utilisé pour créer chaque pod
+  template:
+    metadata:
+      labels:
+        app: mysql  # Label collé sur le pod, doit correspondre au selector ci-dessus
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7  # Image Docker officielle MySQL
+
+        # Variables d'environnement nécessaires au démarrage de MySQL
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "password"         # Mot de passe root (identique au Dockerfile PayMyBuddy)
+        - name: MYSQL_DATABASE
+          value: "db_paymybuddy"    # Nom de la base de données attendue par PayMyBuddy
+
+        # On monte le volume dans le dossier où MySQL stocke ses données
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+
+      # Définition du volume : on utilise un dossier directement sur le nœud (hostPath)
+      # Ainsi les données survivent au redémarrage du pod
+      volumes:
+      - name: mysql-data
+        hostPath:
+          path: /data  # Dossier sur la VM comme demandé dans le sujet
