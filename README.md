@@ -131,7 +131,7 @@ Vérifier que le cluster est opérationnel :
 kubectl get nodes
 ```
 
-R�sultat attendu :
+Résultat attendu :
 ```
 NAME       STATUS   ROLES           AGE   VERSION
 minikube   Ready    control-plane   Xm    v1.35.1
