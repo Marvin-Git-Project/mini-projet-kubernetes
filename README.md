@@ -362,9 +362,9 @@ minikube service paymybuddy-service --url
 
 ---
 
-## Bonnes pratiques mises en place
+## Méthodes appliquées / Pratiques recommandées
 
-| Bonne pratique | Implémentation |
+| Méthode appliquée | Implémentation |
 |----------------|-----------------|
 | Séparation des données sensibles | `Secret db-secret` pour les mots de passe |
 | Séparation de la configuration | `ConfigMap db-config` pour le reste des variables |
