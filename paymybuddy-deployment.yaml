@@ -5,41 +5,49 @@ kind: Deployment
 metadata:
   name: paymybuddy
 spec:
-
   replicas: 1
-
   # Le selector cible les pods ayant le label "app: paymybuddy"
   selector:
     matchLabels:
       app: paymybuddy
-
   # Template = le moule utilisé pour créer chaque pod
   # Tout ce qui est en dessous décrit à quoi ressemble un pod
   template:
     metadata:
-      labels: # Label collé sur chaque pod créé — DOIT être identique au "selector:" ci-dessus
+      labels: # Label collé sur chaque pod créé --> DOIT être identique au "selector:" ci-dessus
         app: paymybuddy
     spec: # Liste des conteneurs qui tournent dans chaque pod (on en a qu'un : paymybuddy)
       containers:
       - name: paymybuddy
         # Image construite localement depuis le code source du repo GitHub
         image: paymybuddy:latest
-
-        # Never -->  Kubernetes utilise l'image locale, ne cherche pas sur Docker Hub
+        # Never --> Kubernetes utilise l'image locale, ne cherche pas sur Docker Hub
         imagePullPolicy: Never
 
         # Variables d'environnement récupérées depuis le Dockerfile du projet
+        # On les sépare maintenant en 2 catégories : ConfigMap (non sensible) et Secret (sensible)
         env:
+        # Username --> donnée non sensible, stockée dans le ConfigMap "db-config"
         - name: SPRING_DATASOURCE_USERNAME
-          value: "root"
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: spring-datasource-username
 
+        # Password --> donnée sensible, stockée dans le Secret "db-secret"
         - name: SPRING_DATASOURCE_PASSWORD
-          value: "password"
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: spring-datasource-password
 
-        # On remplace l'IP du Dockerfile par le nom du service MySQL
-        # Kubernetes résout automatiquement "mysql-service" vers le bon pod
+        # URL de connexion --> donnée non sensible, stockée dans le ConfigMap "db-config"
+        # Contient déjà "mysql-service", le nom du Service qui permet de joindre le pod MySQL
         - name: SPRING_DATASOURCE_URL
-          value: "jdbc:mysql://mysql-service:3306/db_paymybuddy"
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: spring-datasource-url
 
         # Port sur lequel l'application SpringBoot écoute
         ports:
@@ -50,8 +58,8 @@ spec:
         - name: paymybuddy-data
           mountPath: /data
 
-      # Stockage des données sur le nœud dans /data comme demandé dans le sujet du projet
       volumes:
+      # Volume persistant pour les données PayMyBuddy --> géré via PVC/PV au lieu d'un hostPath direct
       - name: paymybuddy-data
-        hostPath:
-          path: /data
+        persistentVolumeClaim:
+          claimName: paymybuddy-pvc

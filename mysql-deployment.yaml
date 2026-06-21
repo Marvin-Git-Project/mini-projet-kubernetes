@@ -1,44 +1,64 @@
 # Deployment MySQL
-# Gère le cycle de vie des pods (création, mise à jour, redémarrage)
+# Le Deployment gère le cycle de vie des pods (création, mise à jour, redémarrage)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql  # Nom du deployment
+  name: mysql
 spec:
-
-  # On veut un seul pod MySQL (comme demandé dans le sujet)
   replicas: 1
-
-  # Le selector permet au Deployment de trouver ses pods via le label "app: mysql"
   selector:
     matchLabels:
       app: mysql
-
-  # Template = le modèle utilisé pour créer chaque pod
   template:
     metadata:
       labels:
-        app: mysql  # Label collé sur le pod, doit correspondre au selector ci-dessus
+        app: mysql
     spec:
       containers:
       - name: mysql
-        image: mysql:5.7  # Image Docker officielle MySQL
-
-        # Variables d'environnement nécessaires au démarrage de MySQL
+        image: mysql:5.7
         env:
+        # Mot de passe root --> donnée sensible, on la récupère depuis le Secret
         - name: MYSQL_ROOT_PASSWORD
-          value: "password"         # Mot de passe root (identique au Dockerfile PayMyBuddy)
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-root-password
+        # Nom de la base --> donnée non sensible, on la récupère depuis le ConfigMap
         - name: MYSQL_DATABASE
-          value: "db_paymybuddy"    # Nom de la base de données attendue par PayMyBuddy
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: mysql-database
 
-        # On monte le volume dans le dossier où MySQL stocke ses données
+        # readinessProbe : Kubernetes teste périodiquement si MySQL est prêt
+        # à accepter des connexions avant de le considérer comme disponible
+        readinessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+            - -u
+            - root
+            - -ppassword
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
+        - name: mysql-init
+          mountPath: /docker-entrypoint-initdb.d
 
-      # Définition du volume : on utilise un dossier directement sur le nœud (hostPath)
-      # Ainsi les données survivent au redémarrage du pod
       volumes:
+      # Volume persistant pour les données MySQL --> géré via PVC/PV au lieu d'un hostPath direct
       - name: mysql-data
-        hostPath:
-          path: /data  # Dossier sur la VM comme demandé dans le sujet
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: mysql-init
+        configMap:
+          name: mysql-init-scripts

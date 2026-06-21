@@ -1,0 +1,27 @@
+# PersistentVolume pour MySQL
+# Déclare un espace de stockage de 1Giga sur le nœud, dans /data/mysql
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/mysql
+---
+# PersistentVolume pour PayMyBuddy
+# Déclare un espace de stockage de 1Gi sur le nœud, dans /data/paymybuddy
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: paymybuddy-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/paymybuddy

@@ -1,0 +1,28 @@
+# PersistentVolumeClaim pour MySQL
+# Demande 1Giga de stockage, lié explicitement au PV "mysql-pv"
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: mysql-pv   # force le lien avec notre PV précis
+  storageClassName: ""   # désactive la création automatique de volume
+---
+# PersistentVolumeClaim pour PayMyBuddy
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paymybuddy-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: paymybuddy-pv
+  storageClassName: ""
