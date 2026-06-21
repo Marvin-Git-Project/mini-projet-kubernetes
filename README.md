@@ -86,8 +86,7 @@ mini-projet-k8s/
 ## Pourquoi on a dû construire l'image Docker manuellement
 
 Le sujet original fait référence à l'image `eazytraining/paymybuddy` sur Docker Hub.
-Cette image n'est plus disponible (les images non maintenues finissent par être
-retirées de Docker Hub sur les comptes gratuits).
+Cette image n'est plus disponible (peut-être lié à Docker Hub).
 
 Pour contourner ce problème, l'image a été reconstruite manuellement depuis le
 code source du repo officiel du formateur : https://github.com/eazytraining/PayMyBuddy
