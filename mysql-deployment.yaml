@@ -33,17 +33,16 @@ spec:
 
         # readinessProbe : Kubernetes teste périodiquement si MySQL est prêt
         # à accepter des connexions avant de le considérer comme disponible
+        # On passe par un shell (sh -c) pour pouvoir interpoler la variable
+        # d'environnement MYSQL_ROOT_PASSWORD plutôt que d'écrire le mot de
+        # passe en clair dans la commande
         readinessProbe:
           exec:
             command:
-            - mysqladmin
-            - ping
-            - -h
-            - localhost
-            - -u
-            - root
-            - -ppassword
-          initialDelaySeconds: 10
+            - sh
+            - -c
+            - "mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD}"
+          initialDelaySeconds: 15
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
